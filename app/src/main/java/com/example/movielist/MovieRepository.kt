@@ -23,22 +23,41 @@ class MovieRepository(
     /** Movies that still need their OMDb details fetched (e.g. added while offline). */
     suspend fun pendingMovies(): List<Movie> = dao.getPending()
 
+    /** Live search by title — returns the matches to choose from. */
+    suspend fun search(query: String): SearchState = withContext(Dispatchers.IO) {
+        try {
+            val resp = api.search(query)
+            val items = resp.search.orEmpty().filter { !it.imdbId.isNullOrBlank() }
+            if (resp.isFound && items.isNotEmpty()) {
+                SearchState.Results(items)
+            } else {
+                SearchState.Empty(resp.error.orNullIfNa() ?: "No matches found")
+            }
+        } catch (_: Exception) {
+            SearchState.Empty("Couldn't search — check your connection.")
+        }
+    }
+
     /**
-     * Look the movie up on OMDb by title and fill in poster/year/director/casts.
-     * On any failure (no network, no/invalid API key, title not found) the movie is
-     * left as-is with detailsFetched = false so it will be retried when back online.
+     * Fill in poster/year/director/casts for a stored movie. Uses the precise
+     * IMDb id when we have one (chosen from search), otherwise a best-guess by
+     * title. On any failure the movie stays pending and is retried when online.
      */
     suspend fun fetchDetailsFor(id: Long) = withContext(Dispatchers.IO) {
         val movie = dao.getById(id) ?: return@withContext
         try {
-            val resp = api.getByTitle(movie.title)
+            val resp = if (!movie.imdbId.isNullOrBlank()) {
+                api.getByImdbId(movie.imdbId)
+            } else {
+                api.getByTitle(movie.title)
+            }
             if (resp.isFound) {
                 dao.update(
                     movie.copy(
                         title = resp.title.orNullIfNa() ?: movie.title,
-                        posterUrl = resp.poster.orNullIfNa(),
+                        posterUrl = resp.poster.orNullIfNa() ?: movie.posterUrl,
                         year = resp.year.orNullIfNa()
-                            ?.filter { it.isDigit() }?.take(4)?.toIntOrNull(),
+                            ?.filter { it.isDigit() }?.take(4)?.toIntOrNull() ?: movie.year,
                         director = resp.director.orNullIfNa(),
                         casts = resp.actors.orNullIfNa(),
                         detailsFetched = true

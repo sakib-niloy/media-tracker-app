@@ -24,6 +24,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="Movie List"
         android:testOnly="true"
+        android:theme="@style/Theme.CineList"
         android:usesCleartextTraffic="true" >
         <activity
             android:name="com.example.movielist.MainActivity"

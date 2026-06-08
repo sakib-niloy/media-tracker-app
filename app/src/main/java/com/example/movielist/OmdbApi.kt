@@ -23,6 +23,20 @@ interface OmdbApi {
         @Query("apikey") apiKey: String = API_KEY
     ): OmdbResponse
 
+    /** Full details for one exact movie, looked up by its IMDb id. */
+    @GET("/")
+    suspend fun getByImdbId(
+        @Query("i") imdbId: String,
+        @Query("apikey") apiKey: String = API_KEY
+    ): OmdbResponse
+
+    /** Search by title — returns up to 10 matches (multiple movies can share a title). */
+    @GET("/")
+    suspend fun search(
+        @Query("s") query: String,
+        @Query("apikey") apiKey: String = API_KEY
+    ): OmdbSearchResponse
+
     companion object {
         // TODO: replace with your own free OMDb API key.
         const val API_KEY = "a1c21eaa"
@@ -50,6 +64,25 @@ data class OmdbResponse(
 ) {
     val isFound: Boolean get() = response.equals("True", ignoreCase = true)
 }
+
+/** Response for the search endpoint (s=). */
+data class OmdbSearchResponse(
+    @SerializedName("Search") val search: List<OmdbSearchItem>?,
+    @SerializedName("totalResults") val totalResults: String?,
+    @SerializedName("Response") val response: String?,
+    @SerializedName("Error") val error: String?
+) {
+    val isFound: Boolean get() = response.equals("True", ignoreCase = true)
+}
+
+/** A single search hit. Has just enough to show the user a choice. */
+data class OmdbSearchItem(
+    @SerializedName("Title") val title: String?,
+    @SerializedName("Year") val year: String?,
+    @SerializedName("imdbID") val imdbId: String?,
+    @SerializedName("Type") val type: String?,
+    @SerializedName("Poster") val poster: String?
+)
 
 /** Treat OMDb's "N/A" (and blanks) as "no value". */
 fun String?.orNullIfNa(): String? =

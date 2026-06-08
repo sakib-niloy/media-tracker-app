@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:1:1-17:12
-INJECTED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:1:1-17:12
-INJECTED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:1:1-17:12
-INJECTED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:1:1-17:12
+ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:1:1-18:12
+INJECTED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:1:1-18:12
+INJECTED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:1:1-18:12
+INJECTED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:1:1-18:12
 MERGED from [androidx.compose.material3:material3:1.1.2] C:\Users\PSL\.gradle\caches\transforms-4\9284cc65ab111479fd7beb35883afe74\transformed\jetified-material3-1.1.2\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.compose.ui:ui-tooling-android:1.5.3] C:\Users\PSL\.gradle\caches\transforms-4\955220142bd71305fe8094eb08625ec7\transformed\jetified-ui-tooling-release\AndroidManifest.xml:17:1-28:12
 MERGED from [com.google.android.material:material:1.9.0] C:\Users\PSL\.gradle\caches\transforms-4\cc69943fd5ac978c1d27e6b92308154e\transformed\material-1.9.0\AndroidManifest.xml:17:1-26:12
@@ -101,8 +101,8 @@ ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xm
 	android:name
 		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:4:22-76
 application
-ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:6:5-16:19
-INJECTED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:6:5-16:19
+ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:6:5-17:19
+INJECTED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:6:5-17:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.5.3] C:\Users\PSL\.gradle\caches\transforms-4\955220142bd71305fe8094eb08625ec7\transformed\jetified-ui-tooling-release\AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.5.3] C:\Users\PSL\.gradle\caches\transforms-4\955220142bd71305fe8094eb08625ec7\transformed\jetified-ui-tooling-release\AndroidManifest.xml:22:5-26:19
 MERGED from [com.google.android.material:material:1.9.0] C:\Users\PSL\.gradle\caches\transforms-4\cc69943fd5ac978c1d27e6b92308154e\transformed\material-1.9.0\AndroidManifest.xml:24:5-20
@@ -131,24 +131,26 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\PSL\.gradle\caches
 		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:7:9-35
 	android:icon
 		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:8:9-43
+	android:theme
+		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:9:9-46
 	android:usesCleartextTraffic
-		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:9:9-44
+		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:10:9-44
 activity#com.example.movielist.MainActivity
-ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:10:9-15:20
+ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:11:9-16:20
 	android:exported
-		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:10:48-71
+		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:11:48-71
 	android:name
-		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:10:19-47
+		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:11:19-47
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:11:13-14:29
+ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:12:13-15:29
 action#android.intent.action.MAIN
-ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:12:17-69
+ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:13:17-69
 	android:name
-		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:12:25-66
+		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:13:25-66
 category#android.intent.category.LAUNCHER
-ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:13:17-77
+ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:14:17-77
 	android:name
-		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:13:27-74
+		ADDED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml:14:27-74
 uses-sdk
 INJECTED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from C:\imp\projects\first app\android-app\app\src\main\AndroidManifest.xml

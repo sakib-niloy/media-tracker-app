@@ -6,6 +6,7 @@
     <application
         android:label="Movie List"
         android:icon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.CineList"
         android:usesCleartextTraffic="true">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>

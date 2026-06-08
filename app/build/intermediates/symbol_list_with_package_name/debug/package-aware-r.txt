@@ -4355,6 +4355,7 @@ style Theme_AppCompat_Light_Dialog_MinWidth
 style Theme_AppCompat_Light_DialogWhenLarge
 style Theme_AppCompat_Light_NoActionBar
 style Theme_AppCompat_NoActionBar
+style Theme_CineList
 style Theme_Design
 style Theme_Design_BottomSheetDialog
 style Theme_Design_Light

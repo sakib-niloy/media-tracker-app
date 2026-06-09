@@ -31,12 +31,12 @@ public final class MovieDatabase_Impl extends MovieDatabase {
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(3) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(4) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS `movies` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `posterUrl` TEXT, `year` INTEGER, `director` TEXT, `casts` TEXT, `watched` INTEGER NOT NULL, `watchedAt` INTEGER, `imdbId` TEXT, `detailsFetched` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `movies` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `posterUrl` TEXT, `year` INTEGER, `director` TEXT, `casts` TEXT, `watched` INTEGER NOT NULL, `watchedAt` INTEGER, `imdbId` TEXT, `imdbRating` TEXT, `detailsFetched` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cd0123c7ad22fe9ceafd9f9f0e6d67d6')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '91fe2ca8e131ca7db86e55cb3bce5dd8')");
       }
 
       @Override
@@ -85,7 +85,7 @@ public final class MovieDatabase_Impl extends MovieDatabase {
       @NonNull
       public RoomOpenHelper.ValidationResult onValidateSchema(
           @NonNull final SupportSQLiteDatabase db) {
-        final HashMap<String, TableInfo.Column> _columnsMovies = new HashMap<String, TableInfo.Column>(10);
+        final HashMap<String, TableInfo.Column> _columnsMovies = new HashMap<String, TableInfo.Column>(11);
         _columnsMovies.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsMovies.put("title", new TableInfo.Column("title", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsMovies.put("posterUrl", new TableInfo.Column("posterUrl", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
@@ -95,6 +95,7 @@ public final class MovieDatabase_Impl extends MovieDatabase {
         _columnsMovies.put("watched", new TableInfo.Column("watched", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsMovies.put("watchedAt", new TableInfo.Column("watchedAt", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsMovies.put("imdbId", new TableInfo.Column("imdbId", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsMovies.put("imdbRating", new TableInfo.Column("imdbRating", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsMovies.put("detailsFetched", new TableInfo.Column("detailsFetched", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysMovies = new HashSet<TableInfo.ForeignKey>(0);
         final HashSet<TableInfo.Index> _indicesMovies = new HashSet<TableInfo.Index>(0);
@@ -107,7 +108,7 @@ public final class MovieDatabase_Impl extends MovieDatabase {
         }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "cd0123c7ad22fe9ceafd9f9f0e6d67d6", "033369e9c4e30b63287abca778f6f801");
+    }, "91fe2ca8e131ca7db86e55cb3bce5dd8", "e9bc20b7674a4d0e24e77bb65835014c");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;

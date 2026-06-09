@@ -46,7 +46,7 @@ public final class MovieDao_Impl implements MovieDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `movies` (`id`,`title`,`posterUrl`,`year`,`director`,`casts`,`watched`,`watchedAt`,`imdbId`,`detailsFetched`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?,?)";
+        return "INSERT OR REPLACE INTO `movies` (`id`,`title`,`posterUrl`,`year`,`director`,`casts`,`watched`,`watchedAt`,`imdbId`,`imdbRating`,`detailsFetched`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?,?,?)";
       }
 
       @Override
@@ -86,8 +86,13 @@ public final class MovieDao_Impl implements MovieDao {
         } else {
           statement.bindString(9, entity.getImdbId());
         }
+        if (entity.getImdbRating() == null) {
+          statement.bindNull(10);
+        } else {
+          statement.bindString(10, entity.getImdbRating());
+        }
         final int _tmp_1 = entity.getDetailsFetched() ? 1 : 0;
-        statement.bindLong(10, _tmp_1);
+        statement.bindLong(11, _tmp_1);
       }
     };
     this.__deletionAdapterOfMovie = new EntityDeletionOrUpdateAdapter<Movie>(__db) {
@@ -107,7 +112,7 @@ public final class MovieDao_Impl implements MovieDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "UPDATE OR ABORT `movies` SET `id` = ?,`title` = ?,`posterUrl` = ?,`year` = ?,`director` = ?,`casts` = ?,`watched` = ?,`watchedAt` = ?,`imdbId` = ?,`detailsFetched` = ? WHERE `id` = ?";
+        return "UPDATE OR ABORT `movies` SET `id` = ?,`title` = ?,`posterUrl` = ?,`year` = ?,`director` = ?,`casts` = ?,`watched` = ?,`watchedAt` = ?,`imdbId` = ?,`imdbRating` = ?,`detailsFetched` = ? WHERE `id` = ?";
       }
 
       @Override
@@ -147,9 +152,14 @@ public final class MovieDao_Impl implements MovieDao {
         } else {
           statement.bindString(9, entity.getImdbId());
         }
+        if (entity.getImdbRating() == null) {
+          statement.bindNull(10);
+        } else {
+          statement.bindString(10, entity.getImdbRating());
+        }
         final int _tmp_1 = entity.getDetailsFetched() ? 1 : 0;
-        statement.bindLong(10, _tmp_1);
-        statement.bindLong(11, entity.getId());
+        statement.bindLong(11, _tmp_1);
+        statement.bindLong(12, entity.getId());
       }
     };
   }
@@ -230,6 +240,7 @@ public final class MovieDao_Impl implements MovieDao {
           final int _cursorIndexOfWatched = CursorUtil.getColumnIndexOrThrow(_cursor, "watched");
           final int _cursorIndexOfWatchedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "watchedAt");
           final int _cursorIndexOfImdbId = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbId");
+          final int _cursorIndexOfImdbRating = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbRating");
           final int _cursorIndexOfDetailsFetched = CursorUtil.getColumnIndexOrThrow(_cursor, "detailsFetched");
           final Movie _result;
           if (_cursor.moveToFirst()) {
@@ -277,11 +288,17 @@ public final class MovieDao_Impl implements MovieDao {
             } else {
               _tmpImdbId = _cursor.getString(_cursorIndexOfImdbId);
             }
+            final String _tmpImdbRating;
+            if (_cursor.isNull(_cursorIndexOfImdbRating)) {
+              _tmpImdbRating = null;
+            } else {
+              _tmpImdbRating = _cursor.getString(_cursorIndexOfImdbRating);
+            }
             final boolean _tmpDetailsFetched;
             final int _tmp_1;
             _tmp_1 = _cursor.getInt(_cursorIndexOfDetailsFetched);
             _tmpDetailsFetched = _tmp_1 != 0;
-            _result = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpDetailsFetched);
+            _result = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpDetailsFetched);
           } else {
             _result = null;
           }
@@ -314,6 +331,7 @@ public final class MovieDao_Impl implements MovieDao {
           final int _cursorIndexOfWatched = CursorUtil.getColumnIndexOrThrow(_cursor, "watched");
           final int _cursorIndexOfWatchedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "watchedAt");
           final int _cursorIndexOfImdbId = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbId");
+          final int _cursorIndexOfImdbRating = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbRating");
           final int _cursorIndexOfDetailsFetched = CursorUtil.getColumnIndexOrThrow(_cursor, "detailsFetched");
           final List<Movie> _result = new ArrayList<Movie>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -362,11 +380,17 @@ public final class MovieDao_Impl implements MovieDao {
             } else {
               _tmpImdbId = _cursor.getString(_cursorIndexOfImdbId);
             }
+            final String _tmpImdbRating;
+            if (_cursor.isNull(_cursorIndexOfImdbRating)) {
+              _tmpImdbRating = null;
+            } else {
+              _tmpImdbRating = _cursor.getString(_cursorIndexOfImdbRating);
+            }
             final boolean _tmpDetailsFetched;
             final int _tmp_1;
             _tmp_1 = _cursor.getInt(_cursorIndexOfDetailsFetched);
             _tmpDetailsFetched = _tmp_1 != 0;
-            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpDetailsFetched);
+            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpDetailsFetched);
             _result.add(_item);
           }
           return _result;
@@ -397,6 +421,7 @@ public final class MovieDao_Impl implements MovieDao {
           final int _cursorIndexOfWatched = CursorUtil.getColumnIndexOrThrow(_cursor, "watched");
           final int _cursorIndexOfWatchedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "watchedAt");
           final int _cursorIndexOfImdbId = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbId");
+          final int _cursorIndexOfImdbRating = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbRating");
           final int _cursorIndexOfDetailsFetched = CursorUtil.getColumnIndexOrThrow(_cursor, "detailsFetched");
           final List<Movie> _result = new ArrayList<Movie>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -445,11 +470,17 @@ public final class MovieDao_Impl implements MovieDao {
             } else {
               _tmpImdbId = _cursor.getString(_cursorIndexOfImdbId);
             }
+            final String _tmpImdbRating;
+            if (_cursor.isNull(_cursorIndexOfImdbRating)) {
+              _tmpImdbRating = null;
+            } else {
+              _tmpImdbRating = _cursor.getString(_cursorIndexOfImdbRating);
+            }
             final boolean _tmpDetailsFetched;
             final int _tmp_1;
             _tmp_1 = _cursor.getInt(_cursorIndexOfDetailsFetched);
             _tmpDetailsFetched = _tmp_1 != 0;
-            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpDetailsFetched);
+            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpDetailsFetched);
             _result.add(_item);
           }
           return _result;
@@ -484,6 +515,7 @@ public final class MovieDao_Impl implements MovieDao {
           final int _cursorIndexOfWatched = CursorUtil.getColumnIndexOrThrow(_cursor, "watched");
           final int _cursorIndexOfWatchedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "watchedAt");
           final int _cursorIndexOfImdbId = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbId");
+          final int _cursorIndexOfImdbRating = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbRating");
           final int _cursorIndexOfDetailsFetched = CursorUtil.getColumnIndexOrThrow(_cursor, "detailsFetched");
           final List<Movie> _result = new ArrayList<Movie>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -532,11 +564,17 @@ public final class MovieDao_Impl implements MovieDao {
             } else {
               _tmpImdbId = _cursor.getString(_cursorIndexOfImdbId);
             }
+            final String _tmpImdbRating;
+            if (_cursor.isNull(_cursorIndexOfImdbRating)) {
+              _tmpImdbRating = null;
+            } else {
+              _tmpImdbRating = _cursor.getString(_cursorIndexOfImdbRating);
+            }
             final boolean _tmpDetailsFetched;
             final int _tmp_1;
             _tmp_1 = _cursor.getInt(_cursorIndexOfDetailsFetched);
             _tmpDetailsFetched = _tmp_1 != 0;
-            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpDetailsFetched);
+            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpDetailsFetched);
             _result.add(_item);
           }
           return _result;

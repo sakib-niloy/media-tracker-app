@@ -58,6 +58,7 @@ data class OmdbResponse(
     @SerializedName("Year") val year: String?,
     @SerializedName("Director") val director: String?,
     @SerializedName("Actors") val actors: String?,
+    @SerializedName("imdbRating") val imdbRating: String?,
     @SerializedName("Poster") val poster: String?,
     @SerializedName("Response") val response: String?,
     @SerializedName("Error") val error: String?

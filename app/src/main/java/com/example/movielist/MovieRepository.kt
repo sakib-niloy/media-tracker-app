@@ -60,6 +60,7 @@ class MovieRepository(
                             ?.filter { it.isDigit() }?.take(4)?.toIntOrNull() ?: movie.year,
                         director = resp.director.orNullIfNa(),
                         casts = resp.actors.orNullIfNa(),
+                        imdbRating = resp.imdbRating.orNullIfNa(),
                         detailsFetched = true
                     )
                 )

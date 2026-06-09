@@ -58,6 +58,9 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.movielist.ui.theme.CineTheme
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 
 class MainActivity : ComponentActivity() {
     private val vm: MovieViewModel by viewModels()
@@ -83,6 +86,7 @@ fun CineApp(vm: MovieViewModel) {
     val watched by vm.watched.collectAsState()
     val online by vm.isOnline.collectAsState()
     val searchState by vm.searchState.collectAsState()
+    val localQuery by vm.localQuery.collectAsState()
 
     fun closeDialog() {
         showDialog = false
@@ -121,6 +125,11 @@ fun CineApp(vm: MovieViewModel) {
                     )
                 )
         ) {
+            LocalSearchBar(
+                query = localQuery,
+                onQueryChange = { vm.onLocalQueryChanged(it) },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
             CineTabs(selected = tab, onSelect = { tab = it })
             AnimatedContent(
                 targetState = tab,
@@ -131,8 +140,8 @@ fun CineApp(vm: MovieViewModel) {
                 },
                 label = "tabContent"
             ) { current ->
-                if (current == 0) {
-                    MovieList(
+                when (current) {
+                    0 -> MovieList(
                         movies = toWatch,
                         watchedList = false,
                         emptyTitle = "Nothing to watch yet",
@@ -140,14 +149,17 @@ fun CineApp(vm: MovieViewModel) {
                         onMarkWatched = { vm.markWatched(it) },
                         onDelete = { pendingDelete = it }
                     )
-                } else {
-                    MovieList(
+                    1 -> MovieList(
                         movies = watched,
                         watchedList = true,
                         emptyTitle = "No watched movies",
                         emptySubtitle = "Movies you check off will show up here.",
                         onMarkWatched = {},
                         onDelete = { pendingDelete = it }
+                    )
+                    else -> Dashboard(
+                        toWatchCount = toWatch.size,
+                        watchedCount = watched.size
                     )
                 }
             }
@@ -198,7 +210,7 @@ fun CineTopBar() {
 
 @Composable
 fun CineTabs(selected: Int, onSelect: (Int) -> Unit) {
-    val titles = listOf("To Watch", "Watched")
+    val titles = listOf("To Watch", "Watched", "Dashboard")
     Row(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -295,7 +307,32 @@ fun MovieCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.height(10.dp))
+                movie.imdbRating?.let { rating ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.Star,
+                            contentDescription = null,
+                            tint = Color(0xFFFFC107),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            rating,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            " / 10",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
                 movie.year?.let { MetaRow(Icons.Outlined.CalendarToday, it.toString()) }
                 movie.director?.let { MetaRow(Icons.Outlined.Person, it, maxLines = 2) }
                 movie.casts?.let { MetaRow(Icons.Outlined.Groups, it, maxLines = 4) }
@@ -693,4 +730,163 @@ fun DeleteConfirmDialog(movie: Movie, onConfirm: () -> Unit, onDismiss: () -> Un
             }
         }
     )
+}
+
+@Composable
+fun LocalSearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier.fillMaxWidth(),
+        placeholder = { Text("Search your list...") },
+        leadingIcon = {
+            Icon(
+                Icons.Filled.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(
+                        Icons.Filled.Clear,
+                        contentDescription = "Clear",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+            unfocusedBorderColor = Color.Transparent,
+            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+        )
+    )
+}
+
+@Composable
+fun Dashboard(toWatchCount: Int, watchedCount: Int) {
+    val rank = when {
+        watchedCount == 0 -> "Movie Rookie"
+        watchedCount < 5 -> "Cinephile in Training"
+        watchedCount < 10 -> "Movie Buff"
+        watchedCount < 20 -> "Film Critic"
+        watchedCount < 50 -> "Cinema Legend"
+        else -> "God Tier Flex"
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "Your Flex Rank",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    rank,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            StatCard(
+                title = "To Watch",
+                count = toWatchCount,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.weight(1f)
+            )
+            StatCard(
+                title = "Watched",
+                count = watchedCount,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(Modifier.height(32.dp))
+
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Outlined.Movie,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(60.dp)
+            )
+        }
+        
+        Spacer(Modifier.height(16.dp))
+        Text(
+            "Keep watching to increase your flex!",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun StatCard(title: String, count: Int, color: Color, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.2f))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleSmall,
+                color = color
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                count.toString(),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = color
+            )
+        }
+    }
 }

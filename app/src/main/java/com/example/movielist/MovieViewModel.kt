@@ -17,20 +17,33 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+import kotlinx.coroutines.flow.combine
+
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class MovieViewModel(application: Application) : AndroidViewModel(application) {
     private val db = MovieDatabase.getInstance(application)
     private val repo = MovieRepository(db.movieDao())
     private val connectivity = ConnectivityObserver(application)
 
-    val toWatch: StateFlow<List<Movie>> = repo.toWatch()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val _localQuery = MutableStateFlow("")
+    val localQuery: StateFlow<String> = _localQuery
 
-    val watched: StateFlow<List<Movie>> = repo.watched()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val toWatch: StateFlow<List<Movie>> = combine(repo.toWatch(), _localQuery) { list, query ->
+        if (query.isBlank()) list
+        else list.filter { it.title.contains(query, ignoreCase = true) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val watched: StateFlow<List<Movie>> = combine(repo.watched(), _localQuery) { list, query ->
+        if (query.isBlank()) list
+        else list.filter { it.title.contains(query, ignoreCase = true) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val isOnline: StateFlow<Boolean> = connectivity.isOnline
         .stateIn(viewModelScope, SharingStarted.Eagerly, connectivity.isCurrentlyOnline())
+
+    fun onLocalQueryChanged(text: String) {
+        _localQuery.value = text
+    }
 
     // --- Live search -------------------------------------------------------
 

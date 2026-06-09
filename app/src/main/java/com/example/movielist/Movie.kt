@@ -16,6 +16,7 @@ data class Movie(
     // The exact OMDb/IMDb id chosen from search results. When present we fetch
     // details by id (precise) instead of by title (best-guess).
     val imdbId: String? = null,
+    val imdbRating: String? = null,
     // false until OMDb details (poster/year/director/casts) have been fetched.
     // Movies added while offline start false and are filled in once back online.
     val detailsFetched: Boolean = false

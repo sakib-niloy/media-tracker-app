@@ -61,6 +61,17 @@ import com.example.movielist.ui.theme.CineTheme
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.firebase.auth.GoogleAuthProvider
 
 class MainActivity : ComponentActivity() {
     private val vm: MovieViewModel by viewModels()
@@ -69,7 +80,170 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CineTheme {
-                CineApp(vm)
+                val user by vm.user.collectAsState()
+                
+                if (user == null) {
+                    AuthScreen(vm)
+                } else {
+                    CineApp(vm)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AuthScreen(vm: MovieViewModel) {
+    var isLogin by remember { mutableStateOf(true) }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var loading by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        loading = true
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(Exception::class.java)
+            account?.idToken?.let { token ->
+                vm.signInWithGoogle(token) { success, msg ->
+                    loading = false
+                    if (!success) error = msg
+                }
+            }
+        } catch (e: Exception) {
+            loading = false
+            error = "Google Sign-In failed: ${e.localizedMessage}"
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                Icons.Outlined.Movie,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(64.dp)
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "CineList",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                if (isLogin) "Welcome back!" else "Create your account",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Spacer(Modifier.height(32.dp))
+            
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it; error = null },
+                label = { Text("Email") },
+                leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+            
+            Spacer(Modifier.height(16.dp))
+            
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it; error = null },
+                label = { Text("Password") },
+                leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                            contentDescription = null
+                        )
+                    }
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+            
+            error?.let {
+                Spacer(Modifier.height(8.dp))
+                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+            
+            Spacer(Modifier.height(24.dp))
+            
+            Button(
+                onClick = {
+                    loading = true
+                    if (isLogin) {
+                        vm.signIn(email, password) { success, msg ->
+                            loading = false
+                            if (!success) error = msg
+                        }
+                    } else {
+                        vm.signUp(email, password) { success, msg ->
+                            loading = false
+                            if (!success) error = msg
+                        }
+                    }
+                },
+                enabled = email.isNotBlank() && password.length >= 6 && !loading,
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                if (loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                } else {
+                    Text(if (isLogin) "Sign In" else "Sign Up")
+                }
+            }
+            
+            Spacer(Modifier.height(16.dp))
+            
+            TextButton(onClick = { isLogin = !isLogin }) {
+                Text(if (isLogin) "Don't have an account? Sign Up" else "Already have an account? Sign In")
+            }
+            
+            Spacer(Modifier.height(16.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Divider(modifier = Modifier.weight(1f))
+                Text(" OR ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 8.dp))
+                Divider(modifier = Modifier.weight(1f))
+            }
+            Spacer(Modifier.height(16.dp))
+            
+            OutlinedButton(
+                onClick = {
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(context.getString(R.string.default_web_client_id))
+                        .requestEmail()
+                        .build()
+                    val client = GoogleSignIn.getClient(context, gso)
+                    launcher.launch(client.signInIntent)
+                },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Filled.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary) // Placeholder for Google Icon
+                Spacer(Modifier.width(8.dp))
+                Text("Sign in with Google")
             }
         }
     }
@@ -95,7 +269,7 @@ fun CineApp(vm: MovieViewModel) {
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = { CineTopBar() },
+        topBar = { CineTopBar(onLogout = { vm.signOut() }) },
         floatingActionButton = {
             AnimatedVisibility(
                 visible = tab == 0,
@@ -188,7 +362,7 @@ fun CineApp(vm: MovieViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CineTopBar() {
+fun CineTopBar(onLogout: () -> Unit) {
     CenterAlignedTopAppBar(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -199,6 +373,11 @@ fun CineTopBar() {
                 )
                 Spacer(Modifier.width(8.dp))
                 Text("CineList", fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+            }
+        },
+        actions = {
+            IconButton(onClick = onLogout) {
+                Icon(Icons.Filled.Clear, contentDescription = "Logout") // Using Clear as a logout placeholder
             }
         },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(

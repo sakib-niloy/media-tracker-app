@@ -46,7 +46,7 @@ public final class MovieDao_Impl implements MovieDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `movies` (`id`,`title`,`posterUrl`,`year`,`director`,`casts`,`watched`,`watchedAt`,`imdbId`,`imdbRating`,`detailsFetched`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?,?,?)";
+        return "INSERT OR REPLACE INTO `movies` (`id`,`title`,`posterUrl`,`year`,`director`,`casts`,`watched`,`watchedAt`,`imdbId`,`imdbRating`,`userId`,`remoteId`,`detailsFetched`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?,?,?,?,?)";
       }
 
       @Override
@@ -91,8 +91,18 @@ public final class MovieDao_Impl implements MovieDao {
         } else {
           statement.bindString(10, entity.getImdbRating());
         }
+        if (entity.getUserId() == null) {
+          statement.bindNull(11);
+        } else {
+          statement.bindString(11, entity.getUserId());
+        }
+        if (entity.getRemoteId() == null) {
+          statement.bindNull(12);
+        } else {
+          statement.bindString(12, entity.getRemoteId());
+        }
         final int _tmp_1 = entity.getDetailsFetched() ? 1 : 0;
-        statement.bindLong(11, _tmp_1);
+        statement.bindLong(13, _tmp_1);
       }
     };
     this.__deletionAdapterOfMovie = new EntityDeletionOrUpdateAdapter<Movie>(__db) {
@@ -112,7 +122,7 @@ public final class MovieDao_Impl implements MovieDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "UPDATE OR ABORT `movies` SET `id` = ?,`title` = ?,`posterUrl` = ?,`year` = ?,`director` = ?,`casts` = ?,`watched` = ?,`watchedAt` = ?,`imdbId` = ?,`imdbRating` = ?,`detailsFetched` = ? WHERE `id` = ?";
+        return "UPDATE OR ABORT `movies` SET `id` = ?,`title` = ?,`posterUrl` = ?,`year` = ?,`director` = ?,`casts` = ?,`watched` = ?,`watchedAt` = ?,`imdbId` = ?,`imdbRating` = ?,`userId` = ?,`remoteId` = ?,`detailsFetched` = ? WHERE `id` = ?";
       }
 
       @Override
@@ -157,9 +167,19 @@ public final class MovieDao_Impl implements MovieDao {
         } else {
           statement.bindString(10, entity.getImdbRating());
         }
+        if (entity.getUserId() == null) {
+          statement.bindNull(11);
+        } else {
+          statement.bindString(11, entity.getUserId());
+        }
+        if (entity.getRemoteId() == null) {
+          statement.bindNull(12);
+        } else {
+          statement.bindString(12, entity.getRemoteId());
+        }
         final int _tmp_1 = entity.getDetailsFetched() ? 1 : 0;
-        statement.bindLong(11, _tmp_1);
-        statement.bindLong(12, entity.getId());
+        statement.bindLong(13, _tmp_1);
+        statement.bindLong(14, entity.getId());
       }
     };
   }
@@ -241,6 +261,8 @@ public final class MovieDao_Impl implements MovieDao {
           final int _cursorIndexOfWatchedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "watchedAt");
           final int _cursorIndexOfImdbId = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbId");
           final int _cursorIndexOfImdbRating = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbRating");
+          final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfRemoteId = CursorUtil.getColumnIndexOrThrow(_cursor, "remoteId");
           final int _cursorIndexOfDetailsFetched = CursorUtil.getColumnIndexOrThrow(_cursor, "detailsFetched");
           final Movie _result;
           if (_cursor.moveToFirst()) {
@@ -294,11 +316,131 @@ public final class MovieDao_Impl implements MovieDao {
             } else {
               _tmpImdbRating = _cursor.getString(_cursorIndexOfImdbRating);
             }
+            final String _tmpUserId;
+            if (_cursor.isNull(_cursorIndexOfUserId)) {
+              _tmpUserId = null;
+            } else {
+              _tmpUserId = _cursor.getString(_cursorIndexOfUserId);
+            }
+            final String _tmpRemoteId;
+            if (_cursor.isNull(_cursorIndexOfRemoteId)) {
+              _tmpRemoteId = null;
+            } else {
+              _tmpRemoteId = _cursor.getString(_cursorIndexOfRemoteId);
+            }
             final boolean _tmpDetailsFetched;
             final int _tmp_1;
             _tmp_1 = _cursor.getInt(_cursorIndexOfDetailsFetched);
             _tmpDetailsFetched = _tmp_1 != 0;
-            _result = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpDetailsFetched);
+            _result = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpUserId,_tmpRemoteId,_tmpDetailsFetched);
+          } else {
+            _result = null;
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+          _statement.release();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object getByRemoteId(final String remoteId,
+      final Continuation<? super Movie> $completion) {
+    final String _sql = "SELECT * FROM movies WHERE remoteId = ?";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
+    int _argIndex = 1;
+    _statement.bindString(_argIndex, remoteId);
+    final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
+    return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<Movie>() {
+      @Override
+      @Nullable
+      public Movie call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfTitle = CursorUtil.getColumnIndexOrThrow(_cursor, "title");
+          final int _cursorIndexOfPosterUrl = CursorUtil.getColumnIndexOrThrow(_cursor, "posterUrl");
+          final int _cursorIndexOfYear = CursorUtil.getColumnIndexOrThrow(_cursor, "year");
+          final int _cursorIndexOfDirector = CursorUtil.getColumnIndexOrThrow(_cursor, "director");
+          final int _cursorIndexOfCasts = CursorUtil.getColumnIndexOrThrow(_cursor, "casts");
+          final int _cursorIndexOfWatched = CursorUtil.getColumnIndexOrThrow(_cursor, "watched");
+          final int _cursorIndexOfWatchedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "watchedAt");
+          final int _cursorIndexOfImdbId = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbId");
+          final int _cursorIndexOfImdbRating = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbRating");
+          final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfRemoteId = CursorUtil.getColumnIndexOrThrow(_cursor, "remoteId");
+          final int _cursorIndexOfDetailsFetched = CursorUtil.getColumnIndexOrThrow(_cursor, "detailsFetched");
+          final Movie _result;
+          if (_cursor.moveToFirst()) {
+            final long _tmpId;
+            _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final String _tmpTitle;
+            _tmpTitle = _cursor.getString(_cursorIndexOfTitle);
+            final String _tmpPosterUrl;
+            if (_cursor.isNull(_cursorIndexOfPosterUrl)) {
+              _tmpPosterUrl = null;
+            } else {
+              _tmpPosterUrl = _cursor.getString(_cursorIndexOfPosterUrl);
+            }
+            final Integer _tmpYear;
+            if (_cursor.isNull(_cursorIndexOfYear)) {
+              _tmpYear = null;
+            } else {
+              _tmpYear = _cursor.getInt(_cursorIndexOfYear);
+            }
+            final String _tmpDirector;
+            if (_cursor.isNull(_cursorIndexOfDirector)) {
+              _tmpDirector = null;
+            } else {
+              _tmpDirector = _cursor.getString(_cursorIndexOfDirector);
+            }
+            final String _tmpCasts;
+            if (_cursor.isNull(_cursorIndexOfCasts)) {
+              _tmpCasts = null;
+            } else {
+              _tmpCasts = _cursor.getString(_cursorIndexOfCasts);
+            }
+            final boolean _tmpWatched;
+            final int _tmp;
+            _tmp = _cursor.getInt(_cursorIndexOfWatched);
+            _tmpWatched = _tmp != 0;
+            final Long _tmpWatchedAt;
+            if (_cursor.isNull(_cursorIndexOfWatchedAt)) {
+              _tmpWatchedAt = null;
+            } else {
+              _tmpWatchedAt = _cursor.getLong(_cursorIndexOfWatchedAt);
+            }
+            final String _tmpImdbId;
+            if (_cursor.isNull(_cursorIndexOfImdbId)) {
+              _tmpImdbId = null;
+            } else {
+              _tmpImdbId = _cursor.getString(_cursorIndexOfImdbId);
+            }
+            final String _tmpImdbRating;
+            if (_cursor.isNull(_cursorIndexOfImdbRating)) {
+              _tmpImdbRating = null;
+            } else {
+              _tmpImdbRating = _cursor.getString(_cursorIndexOfImdbRating);
+            }
+            final String _tmpUserId;
+            if (_cursor.isNull(_cursorIndexOfUserId)) {
+              _tmpUserId = null;
+            } else {
+              _tmpUserId = _cursor.getString(_cursorIndexOfUserId);
+            }
+            final String _tmpRemoteId;
+            if (_cursor.isNull(_cursorIndexOfRemoteId)) {
+              _tmpRemoteId = null;
+            } else {
+              _tmpRemoteId = _cursor.getString(_cursorIndexOfRemoteId);
+            }
+            final boolean _tmpDetailsFetched;
+            final int _tmp_1;
+            _tmp_1 = _cursor.getInt(_cursorIndexOfDetailsFetched);
+            _tmpDetailsFetched = _tmp_1 != 0;
+            _result = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpUserId,_tmpRemoteId,_tmpDetailsFetched);
           } else {
             _result = null;
           }
@@ -332,6 +474,8 @@ public final class MovieDao_Impl implements MovieDao {
           final int _cursorIndexOfWatchedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "watchedAt");
           final int _cursorIndexOfImdbId = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbId");
           final int _cursorIndexOfImdbRating = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbRating");
+          final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfRemoteId = CursorUtil.getColumnIndexOrThrow(_cursor, "remoteId");
           final int _cursorIndexOfDetailsFetched = CursorUtil.getColumnIndexOrThrow(_cursor, "detailsFetched");
           final List<Movie> _result = new ArrayList<Movie>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -386,11 +530,23 @@ public final class MovieDao_Impl implements MovieDao {
             } else {
               _tmpImdbRating = _cursor.getString(_cursorIndexOfImdbRating);
             }
+            final String _tmpUserId;
+            if (_cursor.isNull(_cursorIndexOfUserId)) {
+              _tmpUserId = null;
+            } else {
+              _tmpUserId = _cursor.getString(_cursorIndexOfUserId);
+            }
+            final String _tmpRemoteId;
+            if (_cursor.isNull(_cursorIndexOfRemoteId)) {
+              _tmpRemoteId = null;
+            } else {
+              _tmpRemoteId = _cursor.getString(_cursorIndexOfRemoteId);
+            }
             final boolean _tmpDetailsFetched;
             final int _tmp_1;
             _tmp_1 = _cursor.getInt(_cursorIndexOfDetailsFetched);
             _tmpDetailsFetched = _tmp_1 != 0;
-            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpDetailsFetched);
+            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpUserId,_tmpRemoteId,_tmpDetailsFetched);
             _result.add(_item);
           }
           return _result;
@@ -403,9 +559,15 @@ public final class MovieDao_Impl implements MovieDao {
   }
 
   @Override
-  public Flow<List<Movie>> getToWatch() {
-    final String _sql = "SELECT * FROM movies WHERE watched = 0 ORDER BY title COLLATE NOCASE ASC";
-    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+  public Flow<List<Movie>> getToWatch(final String userId) {
+    final String _sql = "SELECT * FROM movies WHERE watched = 0 AND (userId = ? OR userId IS NULL) ORDER BY title COLLATE NOCASE ASC";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
+    int _argIndex = 1;
+    if (userId == null) {
+      _statement.bindNull(_argIndex);
+    } else {
+      _statement.bindString(_argIndex, userId);
+    }
     return CoroutinesRoom.createFlow(__db, false, new String[] {"movies"}, new Callable<List<Movie>>() {
       @Override
       @NonNull
@@ -422,6 +584,8 @@ public final class MovieDao_Impl implements MovieDao {
           final int _cursorIndexOfWatchedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "watchedAt");
           final int _cursorIndexOfImdbId = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbId");
           final int _cursorIndexOfImdbRating = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbRating");
+          final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfRemoteId = CursorUtil.getColumnIndexOrThrow(_cursor, "remoteId");
           final int _cursorIndexOfDetailsFetched = CursorUtil.getColumnIndexOrThrow(_cursor, "detailsFetched");
           final List<Movie> _result = new ArrayList<Movie>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -476,11 +640,23 @@ public final class MovieDao_Impl implements MovieDao {
             } else {
               _tmpImdbRating = _cursor.getString(_cursorIndexOfImdbRating);
             }
+            final String _tmpUserId;
+            if (_cursor.isNull(_cursorIndexOfUserId)) {
+              _tmpUserId = null;
+            } else {
+              _tmpUserId = _cursor.getString(_cursorIndexOfUserId);
+            }
+            final String _tmpRemoteId;
+            if (_cursor.isNull(_cursorIndexOfRemoteId)) {
+              _tmpRemoteId = null;
+            } else {
+              _tmpRemoteId = _cursor.getString(_cursorIndexOfRemoteId);
+            }
             final boolean _tmpDetailsFetched;
             final int _tmp_1;
             _tmp_1 = _cursor.getInt(_cursorIndexOfDetailsFetched);
             _tmpDetailsFetched = _tmp_1 != 0;
-            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpDetailsFetched);
+            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpUserId,_tmpRemoteId,_tmpDetailsFetched);
             _result.add(_item);
           }
           return _result;
@@ -497,9 +673,15 @@ public final class MovieDao_Impl implements MovieDao {
   }
 
   @Override
-  public Flow<List<Movie>> getWatched() {
-    final String _sql = "SELECT * FROM movies WHERE watched = 1 ORDER BY title COLLATE NOCASE ASC";
-    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+  public Flow<List<Movie>> getWatched(final String userId) {
+    final String _sql = "SELECT * FROM movies WHERE watched = 1 AND (userId = ? OR userId IS NULL) ORDER BY title COLLATE NOCASE ASC";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
+    int _argIndex = 1;
+    if (userId == null) {
+      _statement.bindNull(_argIndex);
+    } else {
+      _statement.bindString(_argIndex, userId);
+    }
     return CoroutinesRoom.createFlow(__db, false, new String[] {"movies"}, new Callable<List<Movie>>() {
       @Override
       @NonNull
@@ -516,6 +698,8 @@ public final class MovieDao_Impl implements MovieDao {
           final int _cursorIndexOfWatchedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "watchedAt");
           final int _cursorIndexOfImdbId = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbId");
           final int _cursorIndexOfImdbRating = CursorUtil.getColumnIndexOrThrow(_cursor, "imdbRating");
+          final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfRemoteId = CursorUtil.getColumnIndexOrThrow(_cursor, "remoteId");
           final int _cursorIndexOfDetailsFetched = CursorUtil.getColumnIndexOrThrow(_cursor, "detailsFetched");
           final List<Movie> _result = new ArrayList<Movie>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -570,11 +754,23 @@ public final class MovieDao_Impl implements MovieDao {
             } else {
               _tmpImdbRating = _cursor.getString(_cursorIndexOfImdbRating);
             }
+            final String _tmpUserId;
+            if (_cursor.isNull(_cursorIndexOfUserId)) {
+              _tmpUserId = null;
+            } else {
+              _tmpUserId = _cursor.getString(_cursorIndexOfUserId);
+            }
+            final String _tmpRemoteId;
+            if (_cursor.isNull(_cursorIndexOfRemoteId)) {
+              _tmpRemoteId = null;
+            } else {
+              _tmpRemoteId = _cursor.getString(_cursorIndexOfRemoteId);
+            }
             final boolean _tmpDetailsFetched;
             final int _tmp_1;
             _tmp_1 = _cursor.getInt(_cursorIndexOfDetailsFetched);
             _tmpDetailsFetched = _tmp_1 != 0;
-            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpDetailsFetched);
+            _item = new Movie(_tmpId,_tmpTitle,_tmpPosterUrl,_tmpYear,_tmpDirector,_tmpCasts,_tmpWatched,_tmpWatchedAt,_tmpImdbId,_tmpImdbRating,_tmpUserId,_tmpRemoteId,_tmpDetailsFetched);
             _result.add(_item);
           }
           return _result;

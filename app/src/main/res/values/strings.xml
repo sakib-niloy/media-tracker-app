@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Movie List</string>
+    <!-- The Google Services Plugin will automatically fill this in from google-services.json -->
+    <string name="default_web_client_id" translatable="false">PASTE_YOUR_WEB_CLIENT_ID_HERE</string>
+</resources>

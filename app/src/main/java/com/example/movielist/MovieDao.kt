@@ -17,12 +17,15 @@ interface MovieDao {
     @Query("SELECT * FROM movies WHERE id = :id")
     suspend fun getById(id: Long): Movie?
 
+    @Query("SELECT * FROM movies WHERE remoteId = :remoteId")
+    suspend fun getByRemoteId(remoteId: String): Movie?
+
     @Query("SELECT * FROM movies WHERE detailsFetched = 0")
     suspend fun getPending(): List<Movie>
 
-    @Query("SELECT * FROM movies WHERE watched = 0 ORDER BY title COLLATE NOCASE ASC")
-    fun getToWatch(): Flow<List<Movie>>
+    @Query("SELECT * FROM movies WHERE watched = 0 AND (userId = :userId OR userId IS NULL) ORDER BY title COLLATE NOCASE ASC")
+    fun getToWatch(userId: String?): Flow<List<Movie>>
 
-    @Query("SELECT * FROM movies WHERE watched = 1 ORDER BY title COLLATE NOCASE ASC")
-    fun getWatched(): Flow<List<Movie>>
+    @Query("SELECT * FROM movies WHERE watched = 1 AND (userId = :userId OR userId IS NULL) ORDER BY title COLLATE NOCASE ASC")
+    fun getWatched(userId: String?): Flow<List<Movie>>
 }

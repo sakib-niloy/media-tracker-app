@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.movielist.app-mergeDebugResources-61:/values-v22/values-v22.xml",
+            "outputFile": "com.example.movielist.app-mergeDebugResources-67:/values-v22/values-v22.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\PSL\\.gradle\\caches\\transforms-4\\3593028b2e441ff4879d186db6df1753\\transformed\\appcompat-1.6.1\\res\\values-v22\\values-v22.xml",
+                    "source": "C:\\Users\\PSL\\.gradle\\caches\\transforms-4\\0ca9e02eba464d9c0e602f3d879db05d\\transformed\\appcompat-1.6.1\\res\\values-v22\\values-v22.xml",
                     "from": {
                         "startLines": "2,3,4,9",
                         "startColumns": "4,4,4,4",

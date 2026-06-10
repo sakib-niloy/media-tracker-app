@@ -1,23 +1,106 @@
 package com.example.movielist
 
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class MovieRepository(
     private val dao: MovieDao,
     private val api: OmdbApi = OmdbApi.create()
 ) {
-    fun toWatch(): Flow<List<Movie>> = dao.getToWatch()
-    fun watched(): Flow<List<Movie>> = dao.getWatched()
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
 
-    suspend fun add(movie: Movie): Long = dao.insert(movie)
-    suspend fun update(movie: Movie) = dao.update(movie)
-    suspend fun delete(movie: Movie) = dao.delete(movie)
+    private val currentUser get() = auth.currentUser
+
+    fun toWatch(userId: String?): Flow<List<Movie>> = dao.getToWatch(userId)
+    fun watched(userId: String?): Flow<List<Movie>> = dao.getWatched(userId)
+
+    suspend fun add(movie: Movie): Long {
+        val withUser = movie.copy(userId = currentUser?.uid)
+        val id = dao.insert(withUser)
+        syncToRemote(id)
+        return id
+    }
+
+    suspend fun update(movie: Movie) {
+        dao.update(movie)
+        syncToRemote(movie.id)
+    }
+
+    suspend fun delete(movie: Movie) {
+        dao.delete(movie)
+        movie.remoteId?.let { remoteId ->
+            try {
+                firestore.collection("movies").document(remoteId).delete().await()
+            } catch (_: Exception) {}
+        }
+    }
 
     suspend fun markWatched(movie: Movie) {
         val updated = movie.copy(watched = true, watchedAt = System.currentTimeMillis())
         dao.update(updated)
+        syncToRemote(updated.id)
+    }
+
+    private suspend fun syncToRemote(localId: Long) = withContext(Dispatchers.IO) {
+        val movie = dao.getById(localId) ?: return@withContext
+        val userId = currentUser?.uid ?: return@withContext
+        
+        try {
+            val data = hashMapOf(
+                "title" to movie.title,
+                "posterUrl" to movie.posterUrl,
+                "year" to movie.year,
+                "director" to movie.director,
+                "casts" to movie.casts,
+                "watched" to movie.watched,
+                "watchedAt" to movie.watchedAt,
+                "imdbId" to movie.imdbId,
+                "imdbRating" to movie.imdbRating,
+                "userId" to userId
+            )
+
+            if (movie.remoteId == null) {
+                val ref = firestore.collection("movies").add(data).await()
+                dao.update(movie.copy(remoteId = ref.id, userId = userId))
+            } else {
+                firestore.collection("movies").document(movie.remoteId).set(data).await()
+            }
+        } catch (_: Exception) {}
+    }
+
+    suspend fun syncFromRemote() = withContext(Dispatchers.IO) {
+        val userId = currentUser?.uid ?: return@withContext
+        try {
+            val snapshot = firestore.collection("movies")
+                .whereEqualTo("userId", userId)
+                .get().await()
+            
+            snapshot.documents.forEach { doc ->
+                val remoteId = doc.id
+                if (dao.getByRemoteId(remoteId) != null) return@forEach
+
+                val movie = Movie(
+                    title = doc.getString("title") ?: return@forEach,
+                    posterUrl = doc.getString("posterUrl"),
+                    year = doc.getLong("year")?.toInt(),
+                    director = doc.getString("director"),
+                    casts = doc.getString("casts"),
+                    watched = doc.getBoolean("watched") ?: false,
+                    watchedAt = doc.getLong("watchedAt"),
+                    imdbId = doc.getString("imdbId"),
+                    imdbRating = doc.getString("imdbRating"),
+                    userId = userId,
+                    remoteId = remoteId,
+                    detailsFetched = true
+                )
+                dao.insert(movie)
+            }
+        } catch (_: Exception) {}
     }
 
     /** Movies that still need their OMDb details fetched (e.g. added while offline). */

@@ -3,12 +3,15 @@ package com.example.movielist
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -17,23 +20,30 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-import kotlinx.coroutines.flow.combine
-
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class MovieViewModel(application: Application) : AndroidViewModel(application) {
     private val db = MovieDatabase.getInstance(application)
     private val repo = MovieRepository(db.movieDao())
     private val connectivity = ConnectivityObserver(application)
+    private val auth = FirebaseAuth.getInstance()
 
     private val _localQuery = MutableStateFlow("")
     val localQuery: StateFlow<String> = _localQuery
 
-    val toWatch: StateFlow<List<Movie>> = combine(repo.toWatch(), _localQuery) { list, query ->
+    val user = MutableStateFlow(auth.currentUser)
+
+    val toWatch: StateFlow<List<Movie>> = combine(
+        user.flatMapLatest { repo.toWatch(it?.uid) },
+        _localQuery
+    ) { list, query ->
         if (query.isBlank()) list
         else list.filter { it.title.contains(query, ignoreCase = true) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val watched: StateFlow<List<Movie>> = combine(repo.watched(), _localQuery) { list, query ->
+    val watched: StateFlow<List<Movie>> = combine(
+        user.flatMapLatest { repo.watched(it?.uid) },
+        _localQuery
+    ) { list, query ->
         if (query.isBlank()) list
         else list.filter { it.title.contains(query, ignoreCase = true) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -43,6 +53,43 @@ class MovieViewModel(application: Application) : AndroidViewModel(application) {
 
     fun onLocalQueryChanged(text: String) {
         _localQuery.value = text
+    }
+
+    // --- Authentication ----------------------------------------------------
+
+    fun signIn(email: String, pass: String, onResult: (Boolean, String?) -> Unit) {
+        auth.signInWithEmailAndPassword(email, pass)
+            .addOnSuccessListener {
+                user.value = it.user
+                viewModelScope.launch { repo.syncFromRemote() }
+                onResult(true, null)
+            }
+            .addOnFailureListener { onResult(false, it.localizedMessage) }
+    }
+
+    fun signUp(email: String, pass: String, onResult: (Boolean, String?) -> Unit) {
+        auth.createUserWithEmailAndPassword(email, pass)
+            .addOnSuccessListener {
+                user.value = it.user
+                onResult(true, null)
+            }
+            .addOnFailureListener { onResult(false, it.localizedMessage) }
+    }
+
+    fun signInWithGoogle(idToken: String, onResult: (Boolean, String?) -> Unit) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential)
+            .addOnSuccessListener {
+                user.value = it.user
+                viewModelScope.launch { repo.syncFromRemote() }
+                onResult(true, null)
+            }
+            .addOnFailureListener { onResult(false, it.localizedMessage) }
+    }
+
+    fun signOut() {
+        auth.signOut()
+        user.value = null
     }
 
     // --- Live search -------------------------------------------------------
@@ -72,6 +119,11 @@ class MovieViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     init {
+        // Sync on launch if already logged in
+        if (auth.currentUser != null) {
+            viewModelScope.launch { repo.syncFromRemote() }
+        }
+
         // When the device (re)gains connectivity, fill in details for any
         // movies that were added while offline.
         viewModelScope.launch {
@@ -83,7 +135,6 @@ class MovieViewModel(application: Application) : AndroidViewModel(application) {
 
     // --- Adding ------------------------------------------------------------
 
-    /** Add the exact movie the user picked from the search results. */
     fun addFromSearch(item: OmdbSearchItem) = viewModelScope.launch {
         val title = item.title?.trim().orEmpty()
         if (title.isEmpty()) return@launch
@@ -100,10 +151,6 @@ class MovieViewModel(application: Application) : AndroidViewModel(application) {
         if (connectivity.isCurrentlyOnline()) repo.fetchDetailsFor(id)
     }
 
-    /**
-     * Add by name only (offline, or "add it anyway" when no match is found).
-     * Details are fetched automatically once the device is online.
-     */
     fun addByName(name: String) = viewModelScope.launch {
         val title = name.trim()
         if (title.isEmpty()) return@launch

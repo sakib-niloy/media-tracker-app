@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">384986934048-cqsuhtssm42lga8bl06bo33n25jmq5s7.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">384986934048</string>
+    <string name="google_api_key" translatable="false">AIzaSyD-UmgbUM2OlJlEtnYUi3LpPG7ifcvYIIw</string>
+    <string name="google_app_id" translatable="false">1:384986934048:android:9cde078ef579b5a2468545</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyD-UmgbUM2OlJlEtnYUi3LpPG7ifcvYIIw</string>
+    <string name="google_storage_bucket" translatable="false">movielist-9d890.firebasestorage.app</string>
+    <string name="project_id" translatable="false">movielist-9d890</string>
+</resources>
